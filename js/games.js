@@ -175,11 +175,44 @@ G.widget=function(el,ch,o){
     const on=w.on.slice();
     const d=()=>{el.innerHTML=`<div class="bulbs">${w.vals.map((v,k)=>`<button class="bulb" style="background:none;border:0;color:inherit;font:inherit;cursor:pointer" data-b="${k}" aria-pressed="${!!on[k]}" aria-label="${v} ${on[k]?'ON':'OFF'}"><i class="${on[k]?'':'off'}"></i><b>${v}</b><br><span class="muted">${on[k]?'ON':'OFF'}</span></button>`).join('')}</div>`};
     el.onclick=e=>{const b=e.target.closest('[data-b]');if(b){on[+b.dataset.b]^=1;d()}};d();
+  }else if(w.type==='code'){
+    el.innerHTML=`<p class="muted">${t('codeNote')}</p><pre class="msgbox mono" style="overflow:auto;margin:0;white-space:pre;max-width:100%"></pre>`;el.querySelector('pre').textContent=w.code;
+  }else if(w.type==='table'){
+    el.innerHTML=`<div style="overflow:auto"><table class="fw mono"><thead><tr>${w.head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${w.rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }else if(w.type==='toolbox'){G.toolbox(el,w.input||'');
+  }else if(w.type==='multi'){
+    el.innerHTML=w.parts.map((p,i)=>`<div class="msgbox" data-part="${i}"></div>`).join('');
+    w.parts.forEach((p,i)=>G.widget(el.querySelector(`[data-part="${i}"]`),{w:p,flag:ch.flag},o));
+  }else if(w.type==='terminal'){
+    el.innerHTML=`<p class="muted">${t('termCtfNote')}</p><div id="tm"></div>`;
+    CKX.mount(el.querySelector('#tm'),typeof w.fs==='function'?w.fs():w.fs,{cwd:w.cwd,quick:['help','ls','ls -a','pwd','whoami']});
   }else if(w.type==='blocks'){
     const def=C.blockLevels[w.level];
     el.innerHTML=`<div class="msgbox">${L(def.tip)}</div><div id="ed"></div><div id="nx"></div>`;
     E.blocks(el.querySelector('#ed'),{def,onWin:()=>{el.querySelector('#nx').innerHTML=`<div class="fb good">${t('bCode')} <code>${esc(ch.flag)}</code></div>`}});
   }
+};
+
+
+/* ---------- Decoder toolbox (CyberChef-lite, runs locally) ---------- */
+G.toolbox=function(el,input){
+  const ops={
+    b64d:v=>{try{return decodeURIComponent(escape(atob(v.trim())))}catch(e){return null}},
+    b64e:v=>{try{return btoa(unescape(encodeURIComponent(v)))}catch(e){return null}},
+    hex:v=>{const h=v.replace(/\s|0x/g,'');if(!/^([0-9a-fA-F]{2})+$/.test(h))return null;return h.match(/../g).map(x=>String.fromCharCode(parseInt(x,16))).join('')},
+    rot:v=>v.replace(/[a-z]/gi,c=>{const b=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-b+13)%26+b)}),
+    rev:v=>[...v].reverse().join(''),
+    bin:v=>{const b=v.replace(/\s/g,'');if(!/^[01]+$/.test(b)||b.length%8)return null;return b.match(/.{8}/g).map(x=>String.fromCharCode(parseInt(x,2))).join('')}
+  };
+  const btn=[['b64d','tbB64d'],['b64e','tbB64e'],['hex','tbHex'],['rot','tbRot'],['rev','tbRev'],['bin','tbBin']];
+  el.innerHTML=`<h3>${t('tbTitle')}</h3><label class="muted" for="tin">${t('tbIn')}</label><textarea id="tin" class="input flag-in" rows="3" spellcheck="false" style="resize:vertical"></textarea>
+  <div class="row" style="margin:.6rem 0">${btn.map(b=>`<button type="button" class="btn sm ghost" data-op="${b[0]}">${t(b[1])}</button>`).join('')}</div>
+  <label class="muted">${t('tbOut')}</label><pre class="msgbox mono" id="tout" style="margin:.2rem 0;white-space:pre-wrap;word-break:break-all;min-height:3rem" aria-live="polite"></pre>
+  <button type="button" class="btn sm turq" id="tuse">${t('tbUse')}</button>`;
+  const tin=el.querySelector('#tin'),tout=el.querySelector('#tout');tin.value=input;
+  el.addEventListener('click',e=>{const b=e.target.closest('[data-op]');
+    if(b){const r=ops[b.dataset.op](tin.value);tout.textContent=r==null?t('tbErr'):r}
+    if(e.target.closest('#tuse')&&tout.textContent!==t('tbErr')){tin.value=tout.textContent;tout.textContent=''}});
 };
 
 /* ---------- Registry ---------- */

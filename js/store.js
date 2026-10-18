@@ -8,16 +8,16 @@ const ls={
   set(k,v){try{window.localStorage.setItem(k,v)}catch(e){mem[k]=v}},
   del(k){try{window.localStorage.removeItem(k)}catch(e){delete mem[k]}}
 };
-const blank=()=>({lang:null,theme:null,nick:'',avatar:0,onboarded:false,xp:0,done:{},badges:[],hints:0});
+const blank=()=>({lang:null,theme:null,mode:null,nick:'',avatar:0,onboarded:false,xp:0,done:{},badges:[],hints:0});
 let S=blank();
 try{const raw=ls.get(KEY);if(raw){const o=JSON.parse(raw);if(o&&typeof o==='object')S=Object.assign(blank(),o)}}catch(e){}
 const save=()=>ls.set(KEY,JSON.stringify(S));
 
-const ctfXp={easy:30,medium:50,challenge:80};
+const ctfXp={easy:30,medium:50,challenge:80},proXp={easy:40,medium:70,challenge:110};
 function badgeState(){
   const d=S.done,has=id=>!!d[id];
-  const ctfN=Object.keys(d).filter(k=>k.startsWith('ctf:')).length;
-  return {first:Object.keys(d).length>0,pw:has('c1')&&has('c2'),phish:has('p1')&&has('p2'),code:has('l1')&&has('l2'),prog:has('a1')&&has('a2'),ctf:ctfN>=5,hero:C.missions.every(m=>has(m.id))};
+  const ctfN=C.ctf.filter(c=>d['ctf:'+c.id]).length,lxN=C.linux.filter(m=>d['lx:'+m.id]).length,tmN=C.tasks.filter(x=>d['tm:'+x.id]).length,prN=C.pctf.filter(c=>d['ctf:'+c.id]).length;
+  return {first:Object.keys(d).length>0,pw:has('c1')&&has('c2'),phish:has('p1')&&has('p2'),code:has('l1')&&has('l2'),prog:has('a1')&&has('a2'),ctf:ctfN>=5,hero:C.missions.every(m=>has(m.id)),lx:lxN>=6,term:tmN>=8,pro:prN>=6,defender:lxN>=C.linux.length&&tmN>=C.tasks.length&&prN>=10};
 }
 const Store={
   get s(){return S},
@@ -37,15 +37,16 @@ const Store={
     save();
     return {first,xp:first?xp:0,stars,newly};
   },
-  ctfXp:d=>ctfXp[d]||30,
+  ctfXp:(d,pro)=>(pro?proXp:ctfXp)[d]||30,
   worldProgress(w){const ms=C.missions.filter(m=>m.world===w);return {done:ms.filter(m=>S.done[m.id]).length,total:ms.length}},
   missionUnlocked(m){const ms=C.missions.filter(x=>x.world===m.world);const i=ms.indexOf(m);return i<=0||!!S.done[ms[i-1].id]},
   ctfUnlocked(ch){
     if(ch.diff==='easy')return true;
-    const n=d=>C.ctf.filter(c=>c.diff===d&&S.done['ctf:'+c.id]).length;
+    const set=ch.pro?C.pctf:C.ctf;
+    const n=d=>set.filter(c=>c.diff===d&&S.done['ctf:'+c.id]).length;
     return ch.diff==='medium'?n('easy')>=2:n('medium')>=2;
   },
-  reset(){S=Object.assign(blank(),{lang:S.lang,theme:S.theme,onboarded:true});save()},
+  reset(){S=Object.assign(blank(),{lang:S.lang,theme:S.theme,mode:S.mode,onboarded:true});save()},
   save
 };
 window.CKS=Store;
