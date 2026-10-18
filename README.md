@@ -4,6 +4,18 @@
 A free, no-account cybersecurity playground for children aged 6–12, by **Junior Securinets at ISI**.
 Meet **Byte**, explore five worlds, play mini-games, code with blocks and hunt beginner CTF flags (`JSEC{...}`).
 
+## Two interfaces, one site
+On first visit Byte asks **who is playing**: **Kids (6–12)** or **College students**. You can switch any time from the navbar or footer; the choice is remembered.
+
+| | Kids | College students |
+|---|---|---|
+| Look | Colorful, rounded, Byte-led | Calm "terminal lab" (paper in light mode, green night terminal in dark mode) |
+| Learn | 5 worlds, 10 missions, Cyber Library | **Linux & Kali**: 8 modules (what Kali is, ethics, shell basics, files, pipes, permissions, tools, safe lab) with a command cheat sheet |
+| Practice | 8 mini-games, block coding | **Terminal Lab**: a simulated shell with a fake computer and 12 guided tasks (`pwd ls cd cat grep find chmod |  > nmap` …) |
+| Flags | 12 beginner CTF challenges | **14 Pro CTF** challenges: Linux, crypto, forensics, network, web, reverse, ethics (with an in-browser decoder toolbox) |
+
+The terminal is a **simulation**: commands are parsed by a whitelist over an in-memory filesystem. Nothing is executed on the device, and `nmap` only works against the fictional `10.0.0.5`.
+
 ## Run it
 No build step, no dependencies, no backend.
 
@@ -43,6 +55,8 @@ js/i18n.js, i18n-extra.js  translation core + UI strings (EN/FR/AR)
 js/content.js, content2.js worlds, missions, game data, CTF, library (all T(en,fr,ar))
 js/store.js              local progress, XP, badges, unlock rules
 js/art.js                SVG art: Byte, icons, scenes, avatars, map
+js/content3.js, i18n-pro.js  College content (Linux/Kali modules, terminal tasks, pro CTF) + strings
+js/terminal.js           simulated Linux shell + terminal UI
 js/engine.js             maze board + restricted block interpreter + editor
 js/games.js              mini-games, quiz engine, CTF widgets
 js/app.js                router, views, onboarding, celebrations
