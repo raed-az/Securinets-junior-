@@ -38,7 +38,7 @@ let lastFocus=null;
 function openModal(html,onEsc){
   lastFocus=document.activeElement;
   modalRoot.innerHTML=`<div class="modal-bg"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
-  const d=modalRoot.querySelector('.modal'),f=d.querySelector('button,input,select');f&&f.focus();
+  const d=modalRoot.querySelector('.modal'),f=d.querySelector('button,input,select,a[href]');if(f)f.focus();else{d.tabIndex=-1;d.focus()}
   modalRoot.onkeydown=e=>{if(e.key==='Escape'){onEsc?onEsc():closeModal()}
     if(e.key==='Tab'){const els=[...d.querySelectorAll('button,input,select,a[href]')].filter(x=>!x.disabled);if(!els.length)return;const a=els[0],z=els[els.length-1];
       if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}};
@@ -73,14 +73,15 @@ function route(){const h=location.hash.replace(/^#/,'')||'/';const p=h.split('/'
 function renderNav(){
   const r=route().key,cur=k=>r===k?' aria-current="page"':'';
   const col=isCollege();
-  const lk=col?[['home','#/','nHome'],['linux','#/linux','nLinux'],['terminal','#/terminal','nTerm'],['ctf','#/ctf','nCtfPro'],['dashboard','#/dashboard','nSkills']]:[['home','#/','nHome'],['worlds','#/worlds','nWorlds'],['games','#/games','nGames'],['ctf','#/ctf','nCtf'],['library','#/library','nLib'],['dashboard','#/dashboard','nDash']];
+  const lk=col?[['home','#/','nHome'],['course','#/course','nCourse'],['linux','#/linux','nLinux'],['terminal','#/terminal','nTerm'],['ctf','#/ctf','nCtfPro']]:[['home','#/','nHome'],['worlds','#/worlds','nWorlds'],['games','#/games','nGames'],['ctf','#/ctf','nCtf'],['library','#/library','nLib']];
+  const more=col?[['detective','#/detective','nDetective'],['defense','#/defense','nDefense'],['studio','#/studio','nStudio'],['passport','#/passport','nPassport'],['trophies','#/trophies','nTrophies'],['dashboard','#/dashboard','nSkills']]:[['studio','#/studio','nStudio'],['passport','#/passport','nPassport'],['trophies','#/trophies','nTrophies'],['dashboard','#/dashboard','nDash']];
   const dark=document.documentElement.dataset.theme==='dark';
   nav.innerHTML=`<div class="wrap nav"><a class="brand" href="#/" aria-label="CyberKids"><img src="assets/logo.jpeg" alt="" width="46" height="46"><span>CyberKids</span></a>
-  <nav class="links" id="links" aria-label="Main">${lk.map(a=>`<a href="${a[1]}"${cur(a[0])}>${t(a[2])}</a>`).join('')}<button class="tab mode-sw" id="modeSw" title="${t('modeSwitchTo')}" aria-label="${t('modeSwitchTo')}">⇄ ${t('modeSwitch',{a:col?t('modeKids'):t('modeCollege')})}</button></nav>
+  <nav class="links" id="links" aria-label="Main">${lk.map(a=>`<a href="${a[1]}"${cur(a[0])}>${t(a[2])}</a>`).join('')}<details class="more"><summary class="tab">${t('nMore')}</summary><div class="more-menu">${more.map(a=>`<a href="${a[1]}"${cur(a[0])}>${t(a[2])}</a>`).join('')}</div></details><button class="tab mode-sw" id="modeSw" title="${t('modeSwitchTo')}" aria-label="${t('modeSwitchTo')}">⇄ ${t('modeSwitch',{a:col?t('modeKids'):t('modeCollege')})}</button></nav>
   <div class="tools"><a class="xp xp-nav" href="#/dashboard" aria-label="${t('level')} ${S.level()}">${A.icon('star',20)} ${t('level')} ${S.level()}</a>
   <select class="lang" id="lang" aria-label="${t('langL')}">${Object.keys(LANGS).map(k=>`<option value="${k}"${CKI.lang===k?' selected':''}>${LANGS[k].name}</option>`).join('')}</select>
   <button class="icon-btn" id="theme" aria-label="${t('themeL')}" title="${t('themeL')}">${dark?'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>':'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>'}</button>
-  <a class="btn sm yellow cta-nav" href="${col?'#/linux/kali':'#/mission/f1'}">${col?t('cStart'):t('start')}</a>
+  <a class="btn sm yellow cta-nav" href="${col?'#/course':'#/mission/f1'}">${col?t('cStartCourse'):t('start')}</a>
   <button class="icon-btn menu-btn" id="menu" aria-expanded="false" aria-controls="links" aria-label="${t('menu')}">☰</button></div></div>`;
   $('#lang').onchange=e=>setLang(e.target.value);
   $('#theme').onclick=()=>{setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');renderNav()};
@@ -135,12 +136,14 @@ function worldsView(){
 function worldView(id){
   const w=world(id);if(!w)return notFound();const ms=C.missions.filter(m=>m.world===id),p=S.worldProgress(id);
   return `<div class="wrap sec">${crumbs([{t:t('nWorlds'),href:'#/worlds'},{t:L(w.name)}])}<div class="card"><div class="art" style="aspect-ratio:21/6">${A.scene(w.art)}</div><h1>${L(w.name)}</h1><p>${L(w.desc)}</p>
-  <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${p.total}" aria-valuenow="${p.done}"><i style="width:${p.done/p.total*100}%"></i></div></div>
+  <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${p.total}" aria-valuenow="${p.done}"><i style="width:${p.done/p.total*100}%"></i></div><p class="row" style="margin-top:.6rem"><span class="pill">${t('worldPct',{a:Math.round(p.done/p.total*100)+'%'})}</span><span class="pill">${A.icon('star',16)} ${t('worldGems',{a:ms.reduce((a,m)=>a+S.stars(m.id),0)+'/'+ms.length*3})}</span></p></div>
   <h2 style="margin-top:1.6rem">${t('missions')}</h2><div class="grid g2">${ms.map((m,i)=>{const open=S.missionUnlocked(m),d=S.isDone(m.id);
     return `<div class="card${open?'':' locked'}"><div class="row"><span class="pill">${t('mission')} ${i+1}</span>${d?`<span class="row" style="gap:0">${starsHtml(S.stars(m.id))}</span>`:open?`<span class="pill medium">${t('newT')}</span>`:`<span class="pill lock">🔒 ${t('locked')}</span>`}</div>
     <h3 style="margin-top:.5rem">${L(m.title)}</h3><p>${L(m.story)}</p><p class="muted"><b>${t('objective')}:</b> ${L(m.obj)}</p><p class="row"><span class="pill">+${m.xp} ${t('xp')}</span></p>
-    ${open?`<a class="btn ${d?'ghost':'green'}" href="#/mission/${m.id}">${d?t('playAgain'):t('play')}</a>`:`<small class="muted">${t('unlockM')}</small>`}</div>`}).join('')}</div></div>`;
+    ${open?`<a class="btn ${d?'ghost':'green'}" href="#/mission/${m.id}">${d?t('playAgain'):t('play')}</a>`:`<small class="muted">🔒 ${t('worldReq',{a:L(ms[i-1].title)})}</small>`}</div>`}).join('')}</div>${sideAndFinal(w,p)}</div>`;
 }
+function sideAndFinal(w,p){const all=p.done===p.total,href=id=>{const [k,v]=id.split(':');return k==='les'?'#/lesson/'+v:k==='ctf'?'#/ctf/'+v:'#/game/'+v};
+  return `<div class="card" style="margin-top:1.2rem;${all?'':'opacity:.7'}"><h3>${A.icon('trophy',32)} ${t('worldFinal')}</h3><p class="muted">${t('worldFinalD')}</p>${all?`<a class="btn ${S.isDone('wf:'+w.id)?'ghost':'green'}" href="#/worldfinal/${w.id}">${S.isDone('wf:'+w.id)?t('playAgain'):t('play')}</a>`:`<small>🔒 ${t('locked')}</small>`}</div><h2 style="margin-top:1.2rem">${t('worldSide')}</h2><div class="grid g3">${(C.side[w.id]||[]).map(id=>`<a class="card link" href="${href(id)}"><b>${esc(CKM.label(id))}</b>${S.isDone(id)?`<span class="pill easy">✔ ${t('done')}</span>`:''}</a>`).join('')}</div>`}
 function nextOf(m){const ms=C.missions.filter(x=>x.world===m.world);return ms[ms.indexOf(m)+1]||null}
 function missionView(id,after){
   const m=mission(id);if(!m)return notFound();const w=world(m.world);
@@ -170,8 +173,14 @@ function ctfView(){
   const n=all.filter(c=>S.isDone('ctf:'+c.id)).length;
   return `<div class="wrap sec"><h1>${t(isCollege()?'nCtfPro':'nCtf')}</h1>${G.say(t(isCollege()?'cP3D':'ctfSub'))}<p class="muted">${t('flagNote')} <span class="xp">${n}/${all.length} ${t('done2')}</span></p>
   <div class="tabs" role="group" aria-label="${t('ctfCats')}">${cats.map(c=>`<button class="tab" data-cat="${c.id}" aria-pressed="${ctfCat===c.id}">${L(c.name)}</button>`).join('')}</div>
-  <div class="grid g3">${list.map(ctfCard).join('')}</div></div>`;
+  ${isCollege()&&ctfCat==='all'?chapters(all):`<div class="grid g3">${list.map(ctfCard).join('')}</div>`}${isCollege()?leaderboard(all):''}</div>`;
 }
+function chapters(all){return ['easy','medium','challenge'].map((d,i)=>{const it=all.filter(c=>c.diff===d),n=it.filter(c=>S.isDone('ctf:'+c.id)).length;
+  return `<h2 style="margin-top:1.4rem">${t('cmp'+(i+1))}</h2><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${it.length}" aria-valuenow="${n}" style="margin-bottom:.8rem"><i style="width:${n/it.length*100}%"></i></div><div class="grid g3">${it.map(ctfCard).join('')}</div>`}).join('')}
+function leaderboard(all){
+  const me=all.filter(c=>S.isDone('ctf:'+c.id)).reduce((a,c)=>a+S.ctfXp(c.diff,true),0);
+  const rows=[['Nova',620],['Rayan',480],['Ines',350],['Karim',210],[t('lbYou'),me,1]].sort((a,b)=>b[1]-a[1]);
+  return `<h2 style="margin-top:1.8rem">${t('lbT')}</h2><p class="muted">${t('lbD')}</p><div style="overflow:auto"><table class="fw"><tbody>${rows.map((r,i)=>`<tr${r[2]?' style="font-weight:900;background:var(--surface2)"':''}><td>${i+1}</td><td>${esc(r[0])}${r[2]?' ★':''}</td><td>${r[1]} ${t('lbPts')}</td></tr>`).join('')}</tbody></table></div>`}
 function ctfRunner(el,ch,o){
   let hints=0,wrong=0,solved=S.isDone('ctf:'+ch.id);
   el.innerHTML=`<div class="panel"><h3>${t('clues')}</h3><div id="w"></div></div>
@@ -219,7 +228,7 @@ function dashView(){
   <h3>${t('avatarL')}</h3><div class="avatars">${AVATARS.map(i=>`<button data-av="${i}" aria-pressed="${st.avatar===i}" aria-label="${t('avatarL')} ${i+1}">${A.avatar(i,52)}</button>`).join('')}</div></div>
   <div class="grid g3" style="margin:1.2rem 0"><div class="card center"><h3>${t('level')} ${S.level()}</h3><div class="bar"><i style="width:${S.levelProgress()}%"></i></div><p class="muted">${st.xp} ${t('xp')}</p></div><div class="card center"><h3>${t('stars')}</h3><p style="font-size:2rem;margin:0" class="row" aria-label="${total}"><span style="margin:auto;display:flex;align-items:center;gap:.4rem">${A.icon('star',34)} ${total}</span></p></div><div class="card center"><h3>${t('badges')}</h3><p style="font-size:2rem;margin:0">${st.badges.length}/${C.badges.length}</p></div></div>
   <h2>${t('badges')}</h2><div class="grid g3">${(isCollege()?C.cbadges:C.badges).map(badgeCard).join('')}</div><h2 style="margin-top:1.6rem">${t('progW')}</h2><div class="grid g3">${isCollege()?collegeProg():wl}</div>
-  <p class="muted" style="margin-top:1.4rem">${t('localNote')}</p><button class="btn ghost" id="rst">${t('resetP')}</button></div>`;
+  <p style="margin-top:1.4rem"><a class="btn ghost" href="#/trophies">${t('nTrophies')}</a> <a class="btn ghost" href="#/passport">${t('nPassport')}</a></p><div class="panel"><h3>${t('dataT')}</h3><p class="muted">${t('dataD')}</p><p class="muted">${t('localNote')}</p><div class="row"><button class="btn ghost" id="exp">${t('dataExp')}</button><label class="btn ghost" for="imp2">${t('dataImp')}</label><input id="imp2" type="file" accept="application/json,.json" style="position:absolute;opacity:0;width:1px;height:1px"><button class="btn ghost" id="rst">${t('resetP')}</button></div><div id="dm" role="status"></div></div></div>`;
 }
 
 /* ---------- College mode ---------- */
@@ -233,9 +242,10 @@ function collegeProg(){const c=colStats(),row=(n,a,b)=>`<div class="card"><b>${n
 function collegeHome(){const c=colStats();
   const path=(href,ico,title,desc,a,b)=>`<a class="card link" href="${href}"><div class="row">${A.icon(ico,44)}<h3 style="margin:0">${title}</h3></div><p class="muted">${desc}</p><div class="bar"><i style="width:${a/b*100}%"></i></div><small class="muted">${a}/${b}</small><span class="btn sm purple" style="align-self:flex-start">${a?t('continue'):t('open')}</span></a>`;
   return `<section class="hero"><div class="stars-bg"></div><div class="wrap"><div><p class="tag">${t('cTag')}</p><h1>${t('cH1')}</h1><p style="font-size:1.15rem;max-width:36rem">${t('cSub')}</p>
-  <div class="row"><a class="btn yellow" href="#/linux/kali">${t('cCta1')}</a><a class="btn ghost" href="#/terminal">${t('cCta2')}</a></div><p style="margin-top:1rem"><b>${t('tagline')}</b></p></div><div class="hero-art">${termArt()}</div></div></section>
+  <div class="row"><a class="btn yellow" href="#/course">${t('cStartCourse')}</a><a class="btn ghost" href="#/linux/kali">${t('cCta1')}</a></div><p style="margin-top:1rem"><b>${t('tagline')}</b></p></div><div class="hero-art">${termArt()}</div></div></section>
   <section class="sec wrap">${G.say(t('obHi'),'cheer')}</section>
   <section class="sec wrap" style="padding-top:0"><h2>${t('cPathsT')}</h2><div class="grid g3">${path('#/linux','shield',t('nLinux'),t('cP1D'),c.lx,C.linux.length)}${path('#/terminal','maze',t('nTerm'),t('cP2D'),c.tm,C.tasks.length)}${path('#/ctf','flag',t('nCtfPro'),t('cP3D'),c.pr,C.pctf.length)}</div></section>
+  <section class="sec wrap" style="padding-top:0"><h2>${t('cHomeMore')}</h2><div class="grid g3"><a class="card link" href="#/course"><h3>${A.icon('academy',36)} ${t('nCourse')}</h3><p class="muted">${t('crsPathD')}</p></a><a class="card link" href="#/detective"><h3>${A.icon('mail',36)} ${t('nDetective')}</h3><p class="muted">${t('detPathD')}</p></a><a class="card link" href="#/defense"><h3>${A.icon('wall',36)} ${t('nDefense')}</h3><p class="muted">${t('dfPathD')}</p></a><a class="card link" href="#/studio"><h3>${A.icon('blocks',36)} ${t('nStudio')}</h3><p class="muted">${t('stPathD')}</p></a><a class="card link" href="#/passport"><h3>${A.icon('trophy',36)} ${t('nPassport')}</h3><p class="muted">${t('ppD')}</p></a></div></section>
   <section class="sec wrap"><div class="card" style="border-color:var(--green)"><h2>${t('cEthicsT')}</h2><p>${t('cEthicsD')}</p></div></section>
   <section class="sec wrap"><h2>${t('cRoadT')}</h2><div class="grid g2 steps">${[1,2,3,4].map(n=>`<div class="card step"><div class="n">${n}</div><div style="align-self:center"><b>${t('road'+n)}</b></div></div>`).join('')}</div></section>
   <section class="sec wrap"><h2>${t('cCheatT')}</h2>${cmdTable(['pwd','ls','cd','cat','grep','find','chmod','man'])}<p><a class="btn sm" href="#/linux/nav">${t('lxCmds')}</a></p></section>`;
@@ -269,12 +279,14 @@ function terminalView(taskId,after){
       $('#tgoal').innerHTML=`<b>${t('termGoal')}:</b> ${L(tk.goal)}<br>${hintOn?`<span class="hint" style="display:inline-block;margin-top:.4rem"><code>${esc(L(tk.hint))}</code></span>`:`<button class="btn sm yellow" data-h="1" style="margin-top:.5rem">${t('hint')}</button>`}`};
     drawSide();
     root.addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b){cur=b.dataset.t;hintOn=false;drawSide()}if(e.target.closest('[data-h]')){hintOn=true;drawSide()}});
-    X.mount($('#tm'),C.labFS(),{quick:['help','pwd','ls','ls -a','cd missions','cat readme.txt','grep ERROR server.log','man grep'],onCommand:ctx=>{
+    let explainOn=false,sess=null;$('#expl').onchange=e=>{explainOn=e.target.checked};$('#trs').onclick=()=>{render();toast(t('termResetDone'))};
+    sess=X.mount($('#tm'),C.labFS(),{quick:['help','pwd','ls','ls -a','cd missions','cat readme.txt','grep ERROR server.log','man grep'],onCommand:ctx=>{
+      if(explainOn){const c=C.cmds.find(k=>k.c===ctx.cmd.split(/\s+/).filter(w=>w!=='sudo')[0]);if(c&&sess)sess.note(c.u+' : '+L(c.d))}
       tasks.forEach(x=>{if(!S.isDone('tm:'+x.id)&&x.test(ctx)){const r=S.complete('tm:'+x.id,20,0);toast('✔ '+t('taskDone')+' '+L(x.title));
         if(x.id===cur){const nx=tasks.find(y=>!S.isDone('tm:'+y.id));if(nx){cur=nx.id;hintOn=false}}
         drawSide();renderNav();if(r.newly.length)badgeModal(r.newly)}})}});
   });
-  return `<div class="wrap sec">${crumbs([{t:t('nLinux'),href:'#/linux'},{t:t('nTerm')}])}<h1>${t('termTitle')}</h1><div class="msgbox">${t('termNote')}</div>
+  return `<div class="wrap sec">${crumbs([{t:t('nLinux'),href:'#/linux'},{t:t('nTerm')}])}<h1>${t('termTitle')}</h1><div class="msgbox"><span class="pill medium">${t('simLabel')}</span> ${t('simNote')}<br>${t('termNote')}</div><div class="row" style="margin-bottom:.6rem"><label class="tab" style="cursor:pointer"><input type="checkbox" id="expl" style="width:20px;height:20px"> ${t('termExplain')}</label><button class="tab" id="trs">${t('termReset')}</button></div>
   <div class="grid" style="grid-template-columns:minmax(0,1fr);gap:1rem" id="tmroot"><div class="panel"><div id="tgoal"></div></div><div id="tm"></div><details class="panel" open><summary><b>${t('termTasks')}</b></summary><div id="tlist" style="margin-top:.6rem"></div></details></div></div>`;
 }
 
@@ -295,7 +307,7 @@ function obRender(){
     if(e.target.closest('[data-skip]'))obFinish(false,d.querySelector('#onick').value);
   });
 }
-function obFinish(go,nick){const o=ob||{avatar:0};const m=o.mode||S.s.mode||'kids';S.set('mode',m);document.documentElement.dataset.mode=m;S.set('onboarded',true);S.set('avatar',o.avatar);if(nick!=null)S.set('nick',nick.trim().slice(0,16));closeModal();if(go)location.hash=m==='college'?'#/linux/kali':'#/mission/f1';else render()}
+function obFinish(go,nick){const o=ob||{avatar:0};const m=o.mode||S.s.mode||'kids';S.set('mode',m);document.documentElement.dataset.mode=m;S.set('onboarded',true);S.set('avatar',o.avatar);if(nick!=null)S.set('nick',nick.trim().slice(0,16));closeModal();if(go)location.hash=m==='college'?'#/course':'#/mission/f1';else render()}
 
 /* ---------- Render ---------- */
 let after=[];
@@ -316,23 +328,26 @@ function render(){
     case 'library':html=libraryView();break;
     case 'lesson':html=lessonView(p[1],post);break;
     case 'dashboard':html=dashView();break;
-    default:html=notFound();
+    default:{const fn=window.CKM&&CKM.routes[r.key];html=fn?fn(p,post):notFound()}
   }
-  renderNav();renderFooter();main.innerHTML=html;
+  renderNav();renderFooter();main.innerHTML=(S.persistent?'':`<div class="wrap"><div class="fb try" role="alert">${t('dataNoStore')}</div></div>`)+html;
   after.forEach(f=>f());
   const h=main.querySelector('h1');document.title=(h?h.textContent+' · ':'')+'CyberKids — '+t('tagline');
   if(r.key==='ctf'&&!p[1])main.onclick=e=>{const b=e.target.closest('[data-cat]');if(b){ctfCat=b.dataset.cat;render()}};else main.onclick=null;
   if(r.key==='dashboard'){
     $('#nick').oninput=e=>S.set('nick',e.target.value.slice(0,16));
+    $('#imp2').onchange=e=>{const f=e.target.files[0];if(!f||f.size>500000){$('#dm').innerHTML=`<div class="fb try">✖ ${t('dataBad')}</div>`;return}const r=new FileReader();r.onload=()=>{if(S.importJson(String(r.result))){toast(t('dataOk'));render()}else $('#dm').innerHTML=`<div class="fb try">✖ ${t('dataBad')}</div>`};r.readAsText(f)};
     main.onclick=e=>{const a=e.target.closest('[data-av]');if(a){S.set('avatar',+a.dataset.av);render();return}
+      if(e.target.closest('#exp')){const b=new Blob([S.exportJson()],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='cyberkids-progress.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);return}
       if(e.target.closest('#rst')){const d=openModal(`<div>${G.say(t('resetAsk'),'think')}<div class="row" style="margin-top:1rem"><button class="btn" data-no="1">${t('close')}</button><button class="btn ghost" data-yes="1">${t('resetP')}</button></div></div>`);
         d.addEventListener('click',ev=>{if(ev.target.closest('[data-no]'))closeModal();if(ev.target.closest('[data-yes]')){S.reset();closeModal();toast(t('resetDone'));render()}})}};
   }
   if(!S.s.onboarded&&!ob&&!modalRoot.firstChild){ob={avatar:S.s.avatar,nick:S.s.nick,mode:S.s.mode};obRender()}
   else if(ob&&modalRoot.firstChild)obRender();
 }
-addEventListener('hashchange',()=>{render();scrollTo(0,0);main.focus({preventScroll:true})});
+addEventListener('hashchange',()=>{if(!ob&&modalRoot.firstChild)closeModal();render();scrollTo(0,0);main.focus({preventScroll:true})});
 document.addEventListener('DOMContentLoaded',()=>{});
+window.CKApp={celebrate,openModal,closeModal,toast,confetti,crumbs,render,renderNav,isCollege,badgeModal};
 initPrefs();render();
 if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 })();

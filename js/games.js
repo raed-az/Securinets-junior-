@@ -20,10 +20,10 @@ G.quiz=function(el,steps,o){
     const b=e.target.closest('[data-k]'),nx=e.target.closest('[data-next]');
     if(nx){if(i<steps.length-1){i++;draw()}else o.done(mistakes);return}
     if(!b||solved)return;const s=steps[i],k=+b.dataset.k,fb=el.querySelector('#fb');
-    if(k===s.a){solved=true;b.classList.add('right');
+    if(k===s.a){solved=true;b.classList.add('right');b.insertAdjacentText('afterbegin','✔ ');
       el.querySelectorAll('.opt').forEach(x=>x.disabled=true);
       fb.innerHTML=`<div class="fb good">${t('correct')}${L(s.why)}</div><p><button class="btn green" data-next="1">${i<steps.length-1?t('next'):t('continue')}</button></p>`;
-    }else{mistakes++;b.classList.add('wrong');b.disabled=true;fb.innerHTML=`<div class="fb try">${t('almost')}${t('tryOther')}</div>`}
+    }else{mistakes++;b.classList.add('wrong');b.insertAdjacentText('afterbegin','✖ ');b.disabled=true;fb.innerHTML=`<div class="fb try">${t('almost')}${s.ex?L(s.why):t('tryOther')}</div>`;o.onWrong&&o.onWrong(i)}
   };
   draw();
 };

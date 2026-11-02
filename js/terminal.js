@@ -227,7 +227,7 @@ X.mount=function(el,spec,opts){
     if(e.key==='ArrowDown'&&mem.length){e.preventDefault();hi=Math.min(mem.length,hi+1);inp.value=mem[hi]||''}};
   el.querySelector('.term').onclick=()=>{if(!getSelection().toString())inp.focus()};
   el.addEventListener('click',e=>{const q=e.target.closest('[data-q]');if(q){say(q.dataset.q);mem.push(q.dataset.q);hi=mem.length}});
-  return S;
+  return Object.assign(S,{note:txt=>{add('muted','ℹ '+txt);out.scrollTop=out.scrollHeight}});
 };
 window.CKX=X;
 })();

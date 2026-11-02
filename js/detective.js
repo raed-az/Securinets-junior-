@@ -1,0 +1,119 @@
+/* Cyber Detective: story-driven, fictional, defensive. Scenes branch on choices; every choice has feedback. */
+(function(){
+const {t,L,T}=CKI,C=CKC,S=CKS,A=CKA,G=CKG,esc=G.esc;
+const M=window.CKM=window.CKM||{routes:{}};
+const u=M.u||((k,en,fr,ar)=>{CKI.UI[k]=T(en,fr,ar)});
+const app=()=>window.CKApp;
+const $=s=>document.querySelector(s);
+const ch=(txt,to,fb,end)=>({t:txt,to,fb,end});
+const EV=(name,body)=>({name,body});
+
+u('detT','Cyber Detective','Cyber Détective','المحقق السيبراني');u('detD','Investigate fictional cases, inspect evidence and make decisions. Your choices change the ending. Everything is made up and defensive.','Mène des enquêtes fictives, examine des preuves et prends des décisions. Tes choix changent la fin. Tout est inventé et défensif.','حقّق في قضايا خيالية وافحص الأدلة واتخذ قراراتك. اختياراتك تغيّر النهاية. كل شيء مختلق ودفاعي.');
+u('detEv','Evidence','Preuves','الأدلة');u('detInspect','Inspect','Examiner','افحص');u('detClues','Clues found: {a} of {b}','Indices trouvés : {a} sur {b}','الأدلة المكتشفة: {a} من {b}');u('detChoose','What do you do?','Que fais-tu ?','ماذا تفعل؟');u('detCont','Continue','Continuer','تابع');u('detRep','Case report','Rapport d’enquête','تقرير القضية');u('detDec','Your decisions','Tes décisions','قراراتك');u('detLearn','What you learned','Ce que tu as appris','ما تعلمته');u('detReplay','Replay the case','Rejouer l’enquête','أعد القضية');u('detCases','Cases','Enquêtes','القضايا');u('detBest','Best result: {a} stars','Meilleur résultat : {a} étoiles','أفضل نتيجة: {a} نجوم');u('detNew','Not played yet','Pas encore jouée','لم تُلعب بعد');
+u('detGood','Case solved!','Enquête résolue !','حُلّت القضية!');u('detOk','Case closed, with lessons to learn.','Enquête close, avec des leçons à retenir.','أُغلقت القضية مع دروس لنتعلمها.');u('detBad','The case went wrong, but mistakes teach us. Try again!','L’enquête a mal tourné, mais les erreurs enseignent. Réessaie !','سارت القضية بشكل سيئ لكن الأخطاء تعلّمنا. حاول مجدداً!');
+u('detFic','All people, addresses and domains are fictional.','Toutes les personnes, adresses et domaines sont fictifs.','كل الأشخاص والعناوين والنطاقات خيالية.');
+
+C.cases=[
+{id:'case1',diff:'easy',title:T('The Scholarship Email','Le mail de la bourse','بريد المنحة'),
+ intro:T('You are Amel, a first-year student. An email arrives from the “scholarship office”.','Tu es Amel, étudiante de première année. Un e-mail arrive du « bureau des bourses ».','أنتِ أمل طالبة في السنة الأولى. يصلك بريد من «مكتب المنح».'),
+ ev:{e1:EV(T('Sender address','Adresse de l’expéditeur','عنوان المرسل'),T('scholarships@univ-grants.example. The real university domain is univ.example.','scholarships@univ-grants.example. Le vrai domaine de l’université est univ.example.','scholarships@univ-grants.example بينما نطاق الجامعة الحقيقي univ.example.')),
+  e2:EV(T('The link','Le lien','الرابط'),T('The button text says “univ.example” but the real link goes to univ-grants.example/login.','Le texte du bouton dit « univ.example » mais le vrai lien mène à univ-grants.example/login.','نص الزر يقول «univ.example» لكن الرابط الحقيقي يذهب إلى univ-grants.example/login.')),
+  e3:EV(T('The tone','Le ton','النبرة'),T('“Your scholarship will be cancelled in 24 hours unless you confirm your password.”','« Ta bourse sera annulée dans 24 h si tu ne confirmes pas ton mot de passe. »','«ستُلغى منحتك خلال 24 ساعة إن لم تؤكدي كلمة سرك».'))},
+ start:'s1',
+ scenes:{
+  s1:{text:T('The email says your scholarship will be cancelled in 24 hours unless you confirm your login on a website. Your heart beats fast.','L’e-mail dit que ta bourse sera annulée dans 24 h si tu ne confirmes pas ta connexion sur un site. Ton cœur bat vite.','يقول البريد إن منحتك ستُلغى خلال 24 ساعة ما لم تؤكدي دخولك في موقع. ينبض قلبك بسرعة.'),ev:['e1','e2','e3'],
+   choices:[ch(T('Click the link right now.','Cliquer sur le lien tout de suite.','النقر على الرابط فوراً.'),'a',T('Urgency is a pressure tactic. Clicking first and thinking later is risky.','L’urgence est une tactique de pression. Cliquer d’abord et réfléchir après est risqué.','الاستعجال أسلوب ضغط. النقر أولاً والتفكير لاحقاً مخاطرة.')),
+    ch(T('Inspect the sender and the link before doing anything.','Examiner l’expéditeur et le lien avant toute action.','فحص المرسل والرابط قبل أي إجراء.'),'b',T('Good instinct: check before you act.','Bon réflexe : vérifier avant d’agir.','حدس جيد: تحققي قبل أن تتصرفي.')),
+    ch(T('Ask a classmate in chat.','Demander à un camarade par message.','سؤال زميل عبر الدردشة.'),'c',T('Asking is good, but a classmate cannot verify the sender for you.','Demander est bien, mais un camarade ne peut pas vérifier l’expéditeur.','السؤال جيد لكن زميلك لا يستطيع التحقق من المرسل.'))]},
+  a:{text:T('The page asks for your student ID and password. The address bar shows univ-grants.example.','La page demande ton numéro d’étudiant et ton mot de passe. La barre d’adresse affiche univ-grants.example.','تطلب الصفحة رقمك الجامعي وكلمة سرك. يظهر شريط العنوان univ-grants.example.'),
+   choices:[ch(T('Type the password to keep the scholarship.','Taper le mot de passe pour garder la bourse.','كتابة كلمة السر للحفاظ على المنحة.'),null,T('You gave your credentials to an attacker.','Tu as donné tes identifiants à un attaquant.','أعطيتِ بيانات دخولك لمهاجم.'),'bad'),
+    ch(T('Close the tab, change my password on the official site and report the email.','Fermer l’onglet, changer mon mot de passe sur le site officiel et signaler l’e-mail.','إغلاق التبويب وتغيير كلمة السر على الموقع الرسمي والإبلاغ عن البريد.'),null,T('Quick recovery: you stopped before typing anything and reported it.','Bonne réaction : tu t’es arrêtée avant de taper quoi que ce soit et tu as signalé.','تعافٍ سريع: توقفتِ قبل الكتابة وأبلغتِ.'),'ok')]},
+  b:{text:T('You notice the sender domain is not the university’s and the link goes elsewhere. Now you decide.','Tu remarques que le domaine n’est pas celui de l’université et que le lien mène ailleurs. À toi de décider.','تلاحظين أن نطاق المرسل ليس نطاق الجامعة وأن الرابط يذهب لمكان آخر. حان وقت القرار.'),
+   choices:[ch(T('Report it to the IT office through the official portal, then delete it.','Le signaler au service informatique via le portail officiel, puis le supprimer.','الإبلاغ عنه لقسم تقنية المعلومات عبر البوابة الرسمية ثم حذفه.'),null,T('Perfect: reporting helps protect other students too.','Parfait : signaler protège aussi les autres étudiants.','ممتاز: الإبلاغ يحمي بقية الطلبة أيضاً.'),'good'),
+    ch(T('Just delete it and say nothing.','Le supprimer sans rien dire.','حذفه دون إخبار أحد.'),null,T('Safe for you, but others may still fall for it. Reporting is better.','Sûr pour toi, mais d’autres peuvent se faire piéger. Signaler est mieux.','آمن لك لكن قد يقع غيرك فيه. الإبلاغ أفضل.'),'ok')]},
+  c:{text:T('Your classmate replies: “Looks real to me, everyone is clicking.”','Ton camarade répond : « Ça a l’air vrai, tout le monde clique. »','يرد زميلك: «يبدو حقيقياً، الجميع ينقر».'),
+   choices:[ch(T('Trust the crowd and click.','Suivre la foule et cliquer.','الوثوق بالجموع والنقر.'),'a',T('A crowd can be wrong. Evidence matters more than popularity.','La foule peut se tromper. Les preuves comptent plus que la popularité.','قد يخطئ الجمهور. الأدلة أهم من الشعبية.')),
+    ch(T('Log in to the official portal myself and check my scholarship status.','Me connecter moi-même au portail officiel pour vérifier ma bourse.','فتح البوابة الرسمية بنفسي والتحقق من حالة منحتي.'),null,T('Excellent: verify through a channel you control.','Excellent : vérifie par un canal que tu contrôles.','ممتاز: تحققي عبر قناة تتحكمين بها.'),'good')]}},
+ end:{good:T('You spotted the phishing email and reported it. Other students were warned in time.','Tu as repéré l’hameçonnage et l’as signalé. Les autres étudiants ont été prévenus à temps.','اكتشفتِ رسالة التصيّد وأبلغتِ عنها. تم تحذير بقية الطلبة في الوقت المناسب.'),
+  ok:T('You avoided the worst, but a few steps could have been safer.','Tu as évité le pire, mais quelques étapes pouvaient être plus sûres.','تجنبتِ الأسوأ لكن بعض الخطوات كانت قابلة لأن تكون أكثر أماناً.'),
+  bad:T('The attacker now has Amel’s login. The university must reset the account and check what was accessed.','L’attaquant a maintenant l’accès d’Amel. L’université doit réinitialiser le compte et vérifier les accès.','أصبح لدى المهاجم دخول أمل. على الجامعة إعادة ضبط الحساب وفحص ما تم الوصول إليه.')},
+ learn:T('Check the sender domain and the real link, never trust urgency, verify on the official site and report phishing.','Vérifie le domaine et le vrai lien, ne cède jamais à l’urgence, vérifie sur le site officiel et signale l’hameçonnage.','تحقق من نطاق المرسل والرابط الحقيقي ولا تخضع للاستعجال وتحقق من الموقع الرسمي وأبلغ عن التصيّد.')},
+
+{id:'case2',diff:'medium',title:T('Sami’s Strange Account','Le compte étrange de Sami','حساب سامي الغريب'),
+ intro:T('You help at the student IT desk. Sami says his university account sent strange links to his friends.','Tu aides au bureau informatique étudiant. Sami dit que son compte universitaire a envoyé des liens étranges à ses amis.','تساعد في مكتب تقنية الطلبة. يقول سامي إن حسابه الجامعي أرسل روابط غريبة لأصدقائه.'),
+ ev:{e1:EV(T('Login history','Historique de connexions','سجل الدخول'),T('03:12 AM: new device from another country. Sami was asleep at home.','03:12 : nouvel appareil depuis un autre pays. Sami dormait chez lui.','03:12 فجراً: جهاز جديد من بلد آخر. كان سامي نائماً في بيته.')),
+  e2:EV(T('Account settings','Paramètres du compte','إعدادات الحساب'),T('A mail forwarding rule sends copies of Sami’s mail to an unknown address, created at 03:15 AM.','Une règle de transfert envoie des copies du courrier de Sami vers une adresse inconnue, créée à 03:15.','قاعدة تحويل ترسل نسخاً من بريد سامي إلى عنوان مجهول أُنشئت 03:15.')),
+  e3:EV(T('Password habit','Habitude de mot de passe','عادة كلمة السر'),T('Sami used the same password for his university account and a small gaming forum that had a data leak.','Sami utilisait le même mot de passe pour l’université et un petit forum de jeux victime d’une fuite.','استخدم سامي كلمة السر نفسها للجامعة ولمنتدى ألعاب صغير تعرض لتسريب.'))},
+ start:'s1',
+ scenes:{
+  s1:{text:T('Where do you start the investigation?','Par où commences-tu l’enquête ?','من أين تبدأ التحقيق؟'),ev:[],
+   choices:[ch(T('Review the login history and account settings first.','Examiner d’abord l’historique et les paramètres du compte.','مراجعة سجل الدخول وإعدادات الحساب أولاً.'),'b',T('Good: facts first, actions second.','Bien : les faits d’abord, les actions ensuite.','جيد: الحقائق أولاً ثم الإجراءات.')),
+    ch(T('Reset the password immediately, no checking.','Réinitialiser le mot de passe tout de suite, sans vérifier.','إعادة ضبط كلمة السر فوراً دون فحص.'),'c',T('Helpful, but you may miss other changes the attacker made.','Utile, mais tu peux rater d’autres modifications de l’attaquant.','مفيد لكنه قد يفوّت تغييرات أخرى أجراها المهاجم.')),
+    ch(T('Tell Sami to wait and see.','Dire à Sami d’attendre.','إخبار سامي بالانتظار.'),null,T('Waiting gives an attacker more time. Act quickly and carefully.','Attendre donne plus de temps à l’attaquant. Agis vite et avec soin.','الانتظار يمنح المهاجم وقتاً أطول. تصرّف بسرعة وبعناية.'),'bad')]},
+  b:{text:T('The logs show a foreign login, a forwarding rule and reused passwords. Time to respond.','Les journaux montrent une connexion étrangère, une règle de transfert et des mots de passe réutilisés. À toi d’agir.','تُظهر السجلات دخولاً أجنبياً وقاعدة تحويل وكلمات سر مكررة. حان وقت الاستجابة.'),ev:['e1','e2','e3'],
+   choices:[ch(T('Reset the password, remove the forwarding rule, enable MFA, sign out all sessions and report to IT.','Réinitialiser le mot de passe, supprimer la règle, activer la MFA, déconnecter toutes les sessions et signaler à l’informatique.','إعادة ضبط كلمة السر وحذف قاعدة التحويل وتفعيل MFA وإنهاء كل الجلسات والإبلاغ.'),null,T('A complete response: it removes the attacker’s access and prevents repeat.','Réponse complète : elle retire l’accès de l’attaquant et évite la récidive.','استجابة كاملة: تزيل وصول المهاجم وتمنع التكرار.'),'good'),
+    ch(T('Only reset the password.','Seulement réinitialiser le mot de passe.','إعادة ضبط كلمة السر فقط.'),null,T('Not enough: the forwarding rule would keep leaking mail.','Insuffisant : la règle de transfert continuerait de fuiter le courrier.','لا يكفي: قاعدة التحويل ستواصل تسريب البريد.'),'ok')]},
+  c:{text:T('After the reset, Sami still gets reports that copies of his mail arrive elsewhere.','Après la réinitialisation, Sami apprend que des copies de son courrier arrivent ailleurs.','بعد إعادة الضبط يعلم سامي أن نسخاً من بريده ما زالت تصل إلى مكان آخر.'),ev:['e2'],
+   choices:[ch(T('Check the account settings for forwarding rules and fix them.','Vérifier les paramètres pour des règles de transfert et les corriger.','فحص إعدادات الحساب بحثاً عن قواعد تحويل وإصلاحها.'),null,T('You found what the quick reset missed. Always look for persistence.','Tu as trouvé ce que la réinitialisation rapide a raté. Cherche toujours la persistance.','وجدت ما فاتته إعادة الضبط السريعة. ابحث دائماً عن آليات الاستمرار.'),'ok'),
+    ch(T('Say it is probably nothing.','Dire que ce n’est sans doute rien.','القول إنه غالباً لا شيء.'),null,T('Ignoring evidence leaves the door open.','Ignorer les preuves laisse la porte ouverte.','تجاهل الأدلة يترك الباب مفتوحاً.'),'bad')]}},
+ end:{good:T('Account secured. Sami learned to use a unique password and MFA.','Compte sécurisé. Sami a appris à utiliser un mot de passe unique et la MFA.','تم تأمين الحساب. تعلم سامي استخدام كلمة سر فريدة وMFA.'),ok:T('The account is mostly safe, but a complete check would have saved time.','Le compte est presque sûr, mais une vérification complète aurait fait gagner du temps.','الحساب آمن في الغالب لكن فحصاً كاملاً كان سيوفر الوقت.'),bad:T('The attacker kept access and more mail leaked. Escalate to the security team now.','L’attaquant a gardé l’accès et plus de courrier a fui. Escalade vers l’équipe sécurité.','احتفظ المهاجم بالوصول وتسرب مزيد من البريد. صعّد الأمر لفريق الأمن الآن.')},
+ learn:T('Reused passwords spread breaches. After a compromise, reset, remove persistence (rules, sessions), enable MFA and report.','Les mots de passe réutilisés propagent les fuites. Après une compromission : réinitialiser, retirer la persistance (règles, sessions), activer la MFA et signaler.','كلمات السر المكررة تنشر التسريبات. بعد الاختراق: أعد الضبط وأزل آليات الاستمرار (القواعد والجلسات) وفعّل MFA وأبلغ.')},
+
+{id:'case3',diff:'medium',title:T('The Too-Good Phone Offer','L’offre de téléphone trop belle','عرض الهاتف المغري'),
+ intro:T('A friend shares “EduPhone Sale”: new phones at 80% off, today only. You are asked to check it.','Un ami partage « EduPhone Sale » : téléphones neufs à -80 %, aujourd’hui seulement. On te demande de vérifier.','يشارك صديق «EduPhone Sale»: هواتف جديدة بخصم 80% اليوم فقط. يُطلب منك التحقق.'),
+ ev:{e1:EV(T('Web address','Adresse web','عنوان الموقع'),T('edu-phones-sale.example was created 2 days ago and has no company name.','edu-phones-sale.example a été créé il y a 2 jours et n’affiche aucune société.','edu-phones-sale.example أُنشئ قبل يومين ولا يذكر اسم شركة.')),
+  e2:EV(T('Payment options','Moyens de paiement','طرق الدفع'),T('Only gift-card codes or direct bank transfer are accepted.','Seulement des codes de cartes cadeaux ou un virement direct.','تُقبل فقط رموز بطاقات الهدايا أو التحويل المصرفي المباشر.')),
+  e3:EV(T('Reviews','Avis','التقييمات'),T('20 five-star reviews, all posted in the same minute with similar wording.','20 avis cinq étoiles publiés la même minute, formulés de façon similaire.','20 تقييماً بخمس نجوم نُشرت كلها في الدقيقة نفسها بصياغة متشابهة.'))},
+ start:'s1',
+ scenes:{
+  s1:{text:T('The site has a countdown timer: “Only 10 minutes left!”','Le site affiche un compte à rebours : « Plus que 10 minutes ! »','يعرض الموقع عدّاداً: «بقيت 10 دقائق فقط!»'),ev:[],
+   choices:[ch(T('Buy now before it ends.','Acheter maintenant avant la fin.','الشراء الآن قبل الانتهاء.'),'a',T('A countdown is a pressure trick to stop you from thinking.','Un compte à rebours est une ruse pour t’empêcher de réfléchir.','العدّاد حيلة ضغط لمنعك من التفكير.')),
+    ch(T('Pause and investigate the site.','Faire une pause et enquêter sur le site.','التوقف والتحقيق في الموقع.'),'b',T('Good: scams rely on rushing you.','Bien : les arnaques comptent sur ta précipitation.','جيد: الاحتيال يعتمد على استعجالك.')),
+    ch(T('Share the link with friends so they can benefit.','Partager le lien avec des amis.','مشاركة الرابط مع الأصدقاء ليستفيدوا.'),null,T('Sharing an unverified offer spreads the scam.','Partager une offre non vérifiée propage l’arnaque.','مشاركة عرض غير موثق تنشر الاحتيال.'),'bad')]},
+  a:{text:T('At checkout the site asks you to pay with gift-card codes.','À la caisse, le site demande un paiement par codes de cartes cadeaux.','عند الدفع يطلب الموقع الدفع برموز بطاقات هدايا.'),ev:['e2'],
+   choices:[ch(T('Send the gift-card codes.','Envoyer les codes.','إرسال رموز بطاقات الهدايا.'),null,T('Gift-card codes are untraceable. Legitimate shops do not demand them.','Les codes de cartes cadeaux sont intraçables. Les vrais magasins ne les exigent pas.','رموز بطاقات الهدايا لا يمكن تتبعها والمتاجر الحقيقية لا تطلبها.'),'bad'),
+    ch(T('Stop, close the page, report the site and tell a trusted adult.','M’arrêter, fermer la page, signaler le site et en parler à un adulte de confiance.','التوقف وإغلاق الصفحة والإبلاغ عن الموقع وإخبار شخص بالغ موثوق.'),null,T('Good decision, and nothing was lost.','Bonne décision, et rien n’est perdu.','قرار جيد ولم يُفقد شيء.'),'ok')]},
+  b:{text:T('You inspect the site and collect evidence. What is your conclusion?','Tu examines le site et collectes des preuves. Quelle est ta conclusion ?','تفحص الموقع وتجمع الأدلة. ما استنتاجك؟'),ev:['e1','e2','e3'],
+   choices:[ch(T('It is very likely a scam: warn friends and report it to the platform.','C’est très probablement une arnaque : prévenir les amis et signaler à la plateforme.','هو على الأرجح احتيال: أحذّر الأصدقاء وأبلغ المنصة.'),null,T('Evidence-based and helpful to others.','Fondé sur des preuves et utile aux autres.','قرار مبني على الأدلة ومفيد للآخرين.'),'good'),
+    ch(T('Buy a cheaper phone from the same site, just in case.','Acheter un téléphone moins cher sur le même site, au cas où.','شراء هاتف أرخص من الموقع نفسه تحسباً.'),null,T('The evidence says the site is not trustworthy, whatever the price.','Les preuves disent que le site n’est pas fiable, quel que soit le prix.','الأدلة تقول إن الموقع غير موثوق مهما كان السعر.'),'bad')]}},
+ end:{good:T('You protected yourself and your friends and reported the fake shop.','Tu t’es protégé, tes amis aussi, et tu as signalé la fausse boutique.','حميت نفسك وأصدقاءك وأبلغت عن المتجر المزيف.'),ok:T('You avoided losing money, though reporting earlier would have helped others.','Tu n’as pas perdu d’argent, mais signaler plus tôt aurait aidé les autres.','لم تخسر مالاً لكن الإبلاغ مبكراً كان سيساعد الآخرين.'),bad:T('Money or data may be lost. Contact your bank immediately and report the scam.','De l’argent ou des données peuvent être perdus. Contacte vite ta banque et signale l’arnaque.','قد يضيع مال أو بيانات. اتصل بمصرفك فوراً وأبلغ عن الاحتيال.')},
+ learn:T('Too-good deals, countdown timers, new domains, unusual payments and copy-paste reviews are red flags.','Offres trop belles, comptes à rebours, domaines récents, paiements inhabituels et avis copiés sont des signaux d’alerte.','العروض المغرية والعدادات والنطاقات الجديدة وطرق الدفع غير المعتادة والتقييمات المنسوخة علامات تحذير.')}
+];
+
+function list(){
+  return `<div class="wrap sec"><h1>${t('detT')}</h1>${G.say(t('detD'))}<p class="muted">${t('detFic')}</p><div class="grid g3" style="margin-top:1rem">${C.cases.map((c,i)=>{const st=S.stars('det:'+c.id);
+   return `<a class="card link" href="#/detective/${c.id}"><div class="row">${A.icon(['mail','lock','device'][i],44)}<span class="pill ${c.diff}">${t(c.diff)}</span></div><h3>${L(c.title)}</h3><p class="muted">${L(c.intro)}</p><p class="row">${st?`<span class="pill easy">${t('detBest',{a:st})}</span>`:`<span class="pill">${t('detNew')}</span>`}</p><span class="btn sm purple" style="align-self:flex-start">${st?t('detReplay'):t('play')}</span></a>`}).join('')}</div></div>`;
+}
+function play(id,post){
+  const cs=C.cases.find(c=>c.id===id);if(!cs)return '<div class="wrap sec">404</div>';
+  post(()=>{
+    const el=$('#case');let sc=cs.scenes[cs.start],clues=new Set(),log=[];const total=Object.keys(cs.ev).length;
+    const scene=()=>{
+      el.innerHTML=`<div class="panel"><p class="muted">${t('detClues',{a:clues.size,b:total})}</p>${G.say(L(sc.text),'think')}
+      ${sc.ev&&sc.ev.length?`<h3>${t('detEv')}</h3><div class="row">${sc.ev.map(k=>`<button class="btn sm ghost" data-e="${k}">🔍 ${t('detInspect')}: ${esc(L(cs.ev[k].name))}</button>`).join('')}</div><div id="evd" role="status" aria-live="polite"></div>`:''}
+      <h3 style="margin-top:1rem">${t('detChoose')}</h3>${sc.choices.map((c,i)=>`<button class="opt" data-c="${i}">${L(c.t)}</button>`).join('')}<div id="cfb" role="status" aria-live="polite"></div></div>`;
+    };
+    el.onclick=e=>{
+      const b=e.target.closest('[data-e]'),c=e.target.closest('[data-c]'),nx=e.target.closest('[data-n]'),rp=e.target.closest('[data-rp]');
+      if(b){clues.add(b.dataset.e);const ev=cs.ev[b.dataset.e];$('#evd').innerHTML=(($('#evd').dataset.h||'')+`<div class="msgbox"><b>${esc(L(ev.name))}</b><br>${esc(L(ev.body))}</div>`);$('#evd').dataset.h=$('#evd').innerHTML;el.querySelector('.muted').textContent=t('detClues',{a:clues.size,b:total});return}
+      if(c&&!c.disabled){const ch=sc.choices[+c.dataset.c];el.querySelectorAll('[data-c]').forEach(x=>x.disabled=true);c.classList.add(ch.end==='bad'?'wrong':'right');c.insertAdjacentText('afterbegin',ch.end==='bad'?'✖ ':'✔ ');
+        log.push({t:ch.t,fb:ch.fb});
+        $('#cfb').innerHTML=`<div class="fb ${ch.end==='bad'?'try':'good'}">${L(ch.fb)}</div><p><button class="btn green" data-n="${+c.dataset.c}">${t('detCont')}</button></p>`;return}
+      if(nx){const ch=sc.choices[+nx.dataset.n];if(ch.end)finish(ch.end);else{sc=cs.scenes[ch.to];scene()}return}
+      if(rp){sc=cs.scenes[cs.start];clues=new Set();log=[];scene()}
+    };
+    const finish=end=>{
+      const stars={good:3,ok:2,bad:1}[end];
+      el.innerHTML=`<div class="panel"><h2>${t('detRep')}: ${L(cs.title)}</h2><div class="fb ${end==='bad'?'try':'good'}"><b>${t({good:'detGood',ok:'detOk',bad:'detBad'}[end])}</b><br>${L(cs.end[end])}</div>
+      <p class="row" aria-label="${stars}/3">${[1,2,3].map(i=>`<span style="opacity:${i<=stars?1:.25}">${A.icon('star',28)}</span>`).join('')}<span class="pill">${t('detClues',{a:clues.size,b:total})}</span></p>
+      <h3>${t('detDec')}</h3><ol>${log.map(l=>`<li><b>${L(l.t)}</b><br><span class="muted">${L(l.fb)}</span></li>`).join('')}</ol>
+      <h3>${t('detEv')}</h3><ul>${Object.keys(cs.ev).map(k=>`<li>${clues.has(k)?'✔':'○'} <b>${esc(L(cs.ev[k].name))}</b>: ${esc(L(cs.ev[k].body))}</li>`).join('')}</ul>
+      <h3>${t('detLearn')}</h3><p>${L(cs.learn)}</p><div class="row"><button class="btn ghost" data-rp="1">${t('detReplay')}</button><a class="btn" href="#/detective">${t('detCases')}</a></div></div>`;
+      app().celebrate([{id:'det:'+cs.id,xp:60}],{good:0,ok:1,bad:3}[end],null,{href:'#/detective',label:t('detCases')});
+    };
+    scene();
+  });
+  return `<div class="wrap sec">${app().crumbs([{t:t('detT'),href:'#/detective'},{t:L(cs.title)}])}<h1 style="font-size:clamp(1.6rem,4vw,2.3rem)">${L(cs.title)}</h1><p class="muted">${t('detFic')}</p><div class="panel">${G.say(L(cs.intro))}</div><div id="case" style="margin-top:1rem"></div></div>`;
+}
+M.routes.detective=(p,post)=>p[1]?play(p[1],post):list();
+})();
