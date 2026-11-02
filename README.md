@@ -1,77 +1,53 @@
 # CyberKids — Play. Discover. Protect.
 *FR: Joue. Découvre. Protège. · AR: العب. اكتشف. احمِ.*
 
-A free, no-account cybersecurity playground for children aged 6–12, by **Junior Securinets at ISI**.
-Meet **Byte**, explore five worlds, play mini-games, code with blocks and hunt beginner CTF flags (`JSEC{...}`).
+A free, static, no-account cybersecurity learning site by **Junior Securinets at ISI**, in **English, Français and العربية (RTL)**.
+Two interfaces share one design system and one translation system:
 
-## Two interfaces, one site
-On first visit Byte asks **who is playing**: **Kids (6–12)** or **College students**. You can switch any time from the navbar or footer; the choice is remembered.
-
-| | Kids | College students |
+| | **Kids (6–12)** | **College students** |
 |---|---|---|
-| Look | Colorful, rounded, Byte-led | Calm "terminal lab" (paper in light mode, green night terminal in dark mode) |
-| Learn | 5 worlds, 10 missions, Cyber Library | **Linux & Kali**: 8 modules (what Kali is, ethics, shell basics, files, pipes, permissions, tools, safe lab) with a command cheat sheet |
-| Practice | 8 mini-games, block coding | **Terminal Lab**: a simulated shell with a fake computer and 12 guided tasks (`pwd ls cd cat grep find chmod |  > nmap` …) |
-| Flags | 12 beginner CTF challenges | **14 Pro CTF** challenges: Linux, crypto, forensics, network, web, reverse, ethics (with an in-browser decoder toolbox) |
+| Look | Colorful, playful, Byte-led | Calm "terminal lab" (paper / green-night) |
+| Core | 5 worlds + map (prerequisites, final challenge, side quests), 10 missions, 8 mini-games, block coding, 12 CTF, library | **Introduction to Cybersecurity** (12-module course + final assessment + report), Linux & Kali (8 modules), Terminal Lab (12 tasks), 14 Pro CTF (campaign + demo leaderboard) |
+| Shared | Cyber Detective (3 cases), Cyber Defense Simulator, Creator Studio (mazes + quizzes, JSON import/export), Cyber Safety Passport, Trophy Room (badges, daily/weekly quests, learning-days count), Byte hints and recommendations |
 
-The terminal is a **simulation**: commands are parsed by a whitelist over an in-memory filesystem. Nothing is executed on the device, and `nmap` only works against the fictional `10.0.0.5`.
+## Run locally
+No build step, no dependencies. Double-click `index.html`, or `python3 -m http.server 8000` and open <http://localhost:8000>.
+`python3 tools/build-standalone.py` creates one self-contained file in `dist/`.
+Validate translations: `node tools/check-i18n.js`.
 
-## Run it
-No build step, no dependencies, no backend.
+## Deploy on GitHub Pages
+1. Push this folder to a repository (branch `main`).
+2. **Settings → Pages → Source: GitHub Actions.** The workflow `.github/workflows/pages.yml` syntax-checks the scripts and publishes the site.
+3. It works at `https://<user>.github.io/<repo>/`: all paths are relative, routing uses `#/hash` URLs (refresh never 404s), and `sw.js` uses relative scope with a versioned cache (`cyberkids-v3`, network-first, so users are not stuck on old files). No secrets, keys or backend are used.
+Tested by serving the project from a sub-folder (`/my-repo/`) over HTTP: navigation, deep links, refresh, service worker and zero 4xx responses.
 
-- **Double-click `index.html`**, or
-- serve the folder: `python3 -m http.server 8000` then open <http://localhost:8000>
+## Course (College mode)
+12 modules (What is cybersecurity → CIA triad → threats → passwords → networks → cryptography → OS security → web security → forensics/IR → privacy/ethics/law → security in the real world → careers). Each has objectives, expandable explanation, glossary, activity, 2-question knowledge check with explanations, summary, complete button (needs the knowledge check), previous/next. Special activities: password-strength tool, encoding/hash/toy-cipher demo, log investigation + incident report. Byte gives 3 progressive pre-written hints and recommends modules from your local quiz mistakes (not an AI chatbot). Law module avoids legal provisions and points to current Tunisian legislation, official sources and your institution.
 
-## Publish on GitHub Pages
-1. Create a repository and push this folder to the `main` branch.
-2. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
-3. The included workflow (`.github/workflows/pages.yml`) deploys automatically. All paths are relative, so it works under `https://<user>.github.io/<repo>/`. Routing uses `#/hash` URLs, so refreshing never gives a 404.
+## Data and privacy
+Everything is stored in this browser only (`localStorage`, versioned, validated on load, migrated from v1 without losing progress). It does not sync across devices. The dashboard offers export/import (JSON) and confirmed reset; a warning appears if storage is blocked. Passwords typed into tools are never stored or sent. Certificates/reports/passport are **self-generated, editable and not official or verified**; no QR codes are used.
 
-Prefer one file? `python3 tools/build-standalone.py` creates `dist/cyberkids-standalone.html` (everything inlined).
+## Simulations (no backend exists)
+Terminal Lab and terminal CTFs (whitelisted parser over a fake filesystem, nothing executes on your device, `nmap` only "scans" fictional 10.0.0.5), Defense Simulator, Detective cases, network/log/packet exercises, the CTF leaderboard (demo names/scores), and flag checking (done in the browser, so flags are readable in the source; use a server for real events).
 
-## Works on all devices
-Responsive from small phones to desktops, touch-friendly (tap-to-add blocks, on-screen D-pad), keyboard playable (arrows/WASD, Tab focus, visible focus), reduced-motion respected, installable as an app (PWA manifest + offline service worker when served over https/localhost).
-
-## What is inside
-| Area | Details |
-|---|---|
-| Languages | English, Français, العربية with true RTL; switch instantly, saved in the browser |
-| Themes | Light "sunny sky" and dark "night lab"; follows the OS until you choose; saved |
-| Worlds | Internet Forest, Password Castle, Phishing City, Secret Laboratory, Cyber Defense Academy: 10 missions |
-| Mini-games | Password Lab, Phishing Detective, Secret Message Decoder, Cyber Maze, Safe or Suspicious?, Build Your Own Firewall, Find the Hidden Flag, Code Blocks Maze |
-| Block coding | Move/turn/repeat/if-else/collect blocks, Run + Step + Reset, 5 levels, tap or drag |
-| CTF | 12 challenges, 6 categories, easy/medium/challenge, 3 progressive hints, retries, explanations |
-| Library | 12 illustrated lessons with a quick quiz and a related mission |
-| Progress | XP, levels, stars (effort based), 7 badges, avatar + nickname, reset button, all in `localStorage` |
-
-## Safety and privacy
-No accounts, ads, analytics, chat or external requests (system fonts only, no CDN). Passwords typed in Password Lab are never stored or sent. All scenarios, domains and flags are fictional.
-
-## Project structure
+## Structure
 ```
-index.html  manifest.webmanifest  sw.js
-css/styles.css           design system, themes, RTL
-js/i18n.js, i18n-extra.js  translation core + UI strings (EN/FR/AR)
-js/content.js, content2.js worlds, missions, game data, CTF, library (all T(en,fr,ar))
-js/store.js              local progress, XP, badges, unlock rules
-js/art.js                SVG art: Byte, icons, scenes, avatars, map
-js/content3.js, i18n-pro.js  College content (Linux/Kali modules, terminal tasks, pro CTF) + strings
-js/terminal.js           simulated Linux shell + terminal UI
-js/engine.js             maze board + restricted block interpreter + editor
-js/games.js              mini-games, quiz engine, CTF widgets
-js/app.js                router, views, onboarding, celebrations
+index.html, manifest.webmanifest, sw.js, css/styles.css, assets/
+js/i18n*.js  translation core + UI strings (EN/FR/AR)     js/content*.js, course.js  data
+js/store.js  progress (validated, versioned)               js/engine.js, terminal.js, games.js  engines
+js/modules.js course, report, passport, trophies           js/detective.js, defense.js, studio.js, extras.js
+js/app.js    router, nav, onboarding, dashboard            tools/check-i18n.js, build-standalone.py
 ```
-Add content by editing `content*.js`; add a language by adding a third/fourth value in each `T(...)`.
 
-## Safety of the block editor
-Blocks are data (`{t:'move'}` …). The interpreter only knows six node types, clamps loop counts (1–20), limits nesting and total steps (300). Nothing is `eval`'d.
+## Test report (what was actually run)
+Automated Chromium (Playwright) runs, desktop and phone viewports:
+- **Passed:** kids onboarding, missions, password/phishing/decoder/maze/blocks games, CTF; college onboarding, Linux modules, 12 terminal tasks, all 14 Pro CTF flags; course module flow (hints, wrong-answer explanations, quiz gating, completion, persistence), special activities, final assessment, report, passport, trophies; Detective good/bad endings + replay; Defense simulator report; Studio create/save/test/export, valid and invalid imports, quiz creator; progress export/import/confirmed reset; modals close with Esc and on navigation; sub-path deployment and refresh.
+- **Translations:** `tools/check-i18n.js` checked 1,552 triples (EN/FR/AR): no empty values or placeholder mismatches, all used keys exist. A runtime scan of 33 pages × 3 languages found no raw keys on screen.
+- **Responsive:** no horizontal overflow at 320, 375, 768, 1024, 1440 and 1920 px on all tested pages (18 college + 15 kids routes) in EN/FR/AR. Arabic RTL was checked visually on several pages.
+- **Not performed:** real iPhone/Android/Safari/Firefox devices, screen-reader testing, a formal WCAG audit or contrast tool, landscape-phone passes, actual printing to paper/PDF (the print stylesheet exists but was not exercised), and review of FR/AR text by native speakers.
 
-## Known limitations (honest list)
-- Built with plain HTML/CSS/JS, **not** React/TypeScript/Vite/Blockly: the build environment had no network access to install packages. The block system is a restricted drag/tap editor with an extensible node model, not Google Blockly.
-- CTF flags are checked in the browser (visible to anyone reading the source). For real events, move validation to a server.
-- Translations were written carefully but deserve a review by native-speaking teachers.
-- The Arabic/French CTF acrostic uses Latin letter tiles on purpose so the flag stays `JSEC{SMART}`.
-- Tested in Chromium (desktop + 390px mobile, EN/FR/AR, light/dark); not yet on real Safari/Firefox/iOS devices.
-- If accounts or analytics are ever added, review child-privacy law and parental consent first.
-
-Logo: the supplied CyberKids artwork is in `assets/logo.jpeg`; replace the file to rebrand.
+## Known limitations
+- Plain HTML/CSS/JS (no React/Vite/Blockly): the existing project already was, and the block editor is a restricted custom one.
+- The `hash` router is used because GitHub Pages has no server rewrites.
+- Language switching re-renders the current screen (a running game/terminal restarts).
+- Course content is introductory and should be reviewed by an instructor before classroom use.
